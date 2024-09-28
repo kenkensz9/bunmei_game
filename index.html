@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文明シミュレーション</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 中央揃え */
+        }
+        canvas {
+            background-color: green;
+            width: 100%; /* 幅を100%に設定 */
+            height: 80vh; /* 高さを80%に設定 */
+        }
+        #speedControl {
+            margin: 20px; /* スライダーの周りにマージンを追加 */
+            width: 80%; /* スライダーの幅を80%に設定 */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <input type="range" id="speedControl" min="1" max="100" value="50">
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 20; // マス目のサイズ
+        canvas.width = Math.floor(window.innerWidth / gridSize) * gridSize; // 幅をマス目単位に設定
+        canvas.height = Math.floor(window.innerHeight * 0.8 / gridSize) * gridSize; // 高さをマス目単位に設定
+
+        const civilizations = [];
+        const numCivilizations = 5; // 文明の数
+        let speed = 50; // 初期速度
+
+        // 文明の初期化
+        for (let i = 0; i < numCivilizations; i++) {
+            civilizations.push({
+                id: i + 1,
+                capital: { x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize, y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize },
+                territory: [],
+                lockedTerritory: [] // ロックされた領土を管理
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 首都を描画
+            civilizations.forEach(civ => {
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText(civ.id, civ.capital.x + gridSize / 4, civ.capital.y + gridSize / 1.5); // マス目の中心に表示
+                // 領土を描画
+                civ.territory.forEach(t => {
+                    // 領土が首都の位置でない場合のみ描画
+                    if (t.x !== civ.capital.x || t.y !== civ.capital.y) {
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 15px Arial'; // フォントサイズを小さく設定
+                        ctx.fillText(civ.id, t.x + gridSize / 4, t.y + gridSize / 1.5); // マス目の中心に表示
+                    }
+                });
+                // ロックされた領土を描画
+                civ.lockedTerritory.forEach(t => {
+                    ctx.fillStyle = 'red'; // ロックされた領土の色
+                    ctx.fillRect(t.x, t.y, gridSize, gridSize); // □を描画
+                });
+            });
+        }
+
+        function update() {
+            civilizations.forEach(civ => {
+                // 新しい領土を広げるロジック
+                if (Math.random() < 0.1) { // 10%の確率で新しい領土を広げる
+                    const newTerritory = {
+                        x: civ.capital.x + (Math.floor(Math.random() * 3) - 1) * gridSize, // -1, 0, 1のいずれか
+                        y: civ.capital.y + (Math.floor(Math.random() * 3) - 1) * gridSize  // -1, 0, 1のいずれか
+                    };
+                    // 新しい領土がキャンバス内にあるか確認し、重複を避ける
+                    if (newTerritory.x >= 0 && newTerritory.x < canvas.width && newTerritory.y >= 0 && newTerritory.y < canvas.height) {
+                        if (!civ.territory.some(t => t.x === newTerritory.x && t.y === newTerritory.y)) {
+                            // 他の文明の領土と衝突するか確認
+                            const isCollision = civilizations.some(otherCiv => 
+                                otherCiv.id !== civ.id && 
+                                otherCiv.territory.some(t => t.x === newTerritory.x && t.y === newTerritory.y)
+                            );
+
+                            if (isCollision) {
+                                // 衝突があった場合、ロックする
+                                civ.lockedTerritory.push(newTerritory);
+                            } else {
+                                civ.territory.push(newTerritory);
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 既存の領土からさらに広がるロジック
+            civilizations.forEach(civ => {
+                civ.territory.forEach(t => {
+                    if (Math.random() < 0.05) { // 5%の確率で領土を広げる
+                        const newTerritory = {
+                            x: t.x + (Math.floor(Math.random() * 3) - 1) * gridSize, // -1, 0, 1のいずれか
+                            y: t.y + (Math.floor(Math.random() * 3) - 1) * gridSize  // -1, 0, 1のいずれか
+                        };
+                        // 新しい領土がキャンバス内にあるか確認し、重複を避ける
+                        if (newTerritory.x >= 0 && newTerritory.x < canvas.width && newTerritory.y >= 0 && newTerritory.y < canvas.height) {
+                            if (!civ.territory.some(t => t.x === newTerritory.x && t.y === newTerritory.y)) {
+                                // 他の文明の領土と衝突するか確認
+                                const isCollision = civilizations.some(otherCiv => 
+                                    otherCiv.id !== civ.id && 
+                                    otherCiv.territory.some(t => t.x === newTerritory.x && t.y === newTerritory.y)
+                                );
+
+                                if (isCollision) {
+                                    // 衝突があった場合、ロックする
+                                    civ.lockedTerritory.push(newTerritory);
+                                } else {
+                                    civ.territory.push(newTerritory);
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            setTimeout(gameLoop, 100 - speed); // スライダーの値に基づいて更新間隔を調整
+        }
+
+        document.getElementById('speedControl').addEventListener('input', (event) => {
+            speed = event.target.value; // スライダーの値を速度に設定
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
