@@ -50,6 +50,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             // 首都を描画
             civilizations.forEach(civ => {
+                ctx.fillStyle = 'black'; // 背景色を黒に設定
+                ctx.fillRect(civ.capital.x, civ.capital.y, gridSize, gridSize); // 首都の背景を描画
                 ctx.fillStyle = 'white';
                 ctx.font = 'bold 20px Arial';
                 ctx.fillText(civ.id, civ.capital.x + gridSize / 4, civ.capital.y + gridSize / 1.5); // マス目の中心に表示
