@@ -42,8 +42,7 @@
             civilizations.push({
                 id: i + 1,
                 capital: { x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize, y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize },
-                territory: [],
-                lockedTerritory: [] // ロックされた領土を管理
+                territory: []
             });
         }
 
@@ -63,11 +62,6 @@
                         ctx.fillText(civ.id, t.x + gridSize / 4, t.y + gridSize / 1.5); // マス目の中心に表示
                     }
                 });
-                // ロックされた領土を描画
-                civ.lockedTerritory.forEach(t => {
-                    ctx.fillStyle = 'red'; // ロックされた領土の色
-                    ctx.fillRect(t.x, t.y, gridSize, gridSize); // □を描画
-                });
             });
         }
 
@@ -82,18 +76,7 @@
                     // 新しい領土がキャンバス内にあるか確認し、重複を避ける
                     if (newTerritory.x >= 0 && newTerritory.x < canvas.width && newTerritory.y >= 0 && newTerritory.y < canvas.height) {
                         if (!civ.territory.some(t => t.x === newTerritory.x && t.y === newTerritory.y)) {
-                            // 他の文明の領土と衝突するか確認
-                            const isCollision = civilizations.some(otherCiv => 
-                                otherCiv.id !== civ.id && 
-                                otherCiv.territory.some(t => t.x === newTerritory.x && t.y === newTerritory.y)
-                            );
-
-                            if (isCollision) {
-                                // 衝突があった場合、ロックする
-                                civ.lockedTerritory.push(newTerritory);
-                            } else {
-                                civ.territory.push(newTerritory);
-                            }
+                            civ.territory.push(newTerritory);
                         }
                     }
                 }
@@ -110,18 +93,7 @@
                         // 新しい領土がキャンバス内にあるか確認し、重複を避ける
                         if (newTerritory.x >= 0 && newTerritory.x < canvas.width && newTerritory.y >= 0 && newTerritory.y < canvas.height) {
                             if (!civ.territory.some(t => t.x === newTerritory.x && t.y === newTerritory.y)) {
-                                // 他の文明の領土と衝突するか確認
-                                const isCollision = civilizations.some(otherCiv => 
-                                    otherCiv.id !== civ.id && 
-                                    otherCiv.territory.some(t => t.x === newTerritory.x && t.y === newTerritory.y)
-                                );
-
-                                if (isCollision) {
-                                    // 衝突があった場合、ロックする
-                                    civ.lockedTerritory.push(newTerritory);
-                                } else {
-                                    civ.territory.push(newTerritory);
-                                }
+                                civ.territory.push(newTerritory);
                             }
                         }
                     }
