@@ -42,26 +42,44 @@
             civilizations.push({
                 id: i + 1,
                 capital: { x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize, y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize },
-                territory: []
+                territory: [],
+                color: getRandomColor() // 各文明にランダムな色を割り当て
             });
+        }
+
+        function getRandomColor() {
+            // 緑と黒を除いたランダムな色を生成
+            let color;
+            do {
+                color = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // ランダムな16進数カラーコード
+            } while (color === '#000000' || color === '#008000'); // 黒と緑を除外
+            return color;
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // 首都を描画
+            const drawnPositions = new Set(); // 描画済みの位置を記録するセット
+
             civilizations.forEach(civ => {
-                ctx.fillStyle = 'black'; // 背景色を黒に設定
+                //ctx.fillStyle = 'black'; // 背景色を黒に設定
                 ctx.fillRect(civ.capital.x, civ.capital.y, gridSize, gridSize); // 首都の背景を描画
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = civ.color; // 各文明の色を使用
                 ctx.font = 'bold 20px Arial';
                 ctx.fillText(civ.id, civ.capital.x + gridSize / 4, civ.capital.y + gridSize / 1.5); // マス目の中心に表示
+                drawnPositions.add(`${civ.capital.x},${civ.capital.y}`); // 首都の位置を記録
+
                 // 領土を描画
                 civ.territory.forEach(t => {
                     // 領土が首都の位置でない場合のみ描画
                     if (t.x !== civ.capital.x || t.y !== civ.capital.y) {
-                        ctx.fillStyle = 'white';
-                        ctx.font = 'bold 15px Arial'; // フォントサイズを小さく設定
-                        ctx.fillText(civ.id, t.x + gridSize / 4, t.y + gridSize / 1.5); // マス目の中心に表示
+                        if (!drawnPositions.has(`${t.x},${t.y}`)) { // 重複チェック
+                            ctx.fillStyle = civ.color; // 背景色を各文明の色に設定
+                            ctx.fillRect(t.x, t.y, gridSize, gridSize); // 領土の背景を描画
+                            ctx.fillStyle = 'black'; // 数字の色を白に設定
+                            ctx.font = 'bold 15px Arial'; // フォントサイズを小さく設定
+                            ctx.fillText(civ.id, t.x + gridSize / 4, t.y + gridSize / 1.5); // マス目の中心に表示
+                            drawnPositions.add(`${t.x},${t.y}`); // 描画済みの位置を記録
+                        }
                     }
                 });
             });
